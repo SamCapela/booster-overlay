@@ -1,88 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8">
+  <title>Twitch Popup</title>
   <style>
     html, body {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      background: transparent !important;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
+      background: transparent;
     }
 
     #popup {
       position: absolute;
-      width: 100px; height: 100px;
-      background: #00ff88;
-      border: 3px solid #00cc66;
-      border-radius: 15px;
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 0, 0, 0.8);
       color: white;
+      font-family: sans-serif;
       font-weight: bold;
-      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
       cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.4s;
-      box-shadow: 0 0 20px rgba(0,255,136,0.8);
-      pointer-events: auto;
-      z-index: 9999;
+      user-select: none;
+      display: none;
+      transition: transform 0.2s ease;
     }
-    #popup.show { opacity: 1; }
-    #popup:hover { background: #00cc66; transform: scale(1.05); }
+
+    #popup:hover {
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
+  <div id="popup">clic</div>
 
-  <div id="popup">CLICK</div>
-
-  <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
   <script>
     const popup = document.getElementById('popup');
-    let spawning = false;
 
-    window.Twitch.ext.onAuthorized(() => {
-      start();
-    });
-
-    function start() {
-      spawn();
-      setInterval(spawn, 10000);
+    function randomPosition() {
+      const x = Math.random() * 90 + 5; // 5–95 %
+      const y = Math.random() * 90 + 5;
+      popup.style.left = x + '%';
+      popup.style.top = y + '%';
     }
 
-    function spawn() {
-      if (spawning) return;
-      spawning = true;
-
-      const x = Math.random() * (window.innerWidth - 120);
-      const y = Math.random() * (window.innerHeight - 120);
-      popup.style.left = x + 'px';
-      popup.style.top = y + 'px';
-      popup.classList.add('show');
-
-      setTimeout(() => {
-        if (popup.classList.contains('show')) {
-          popup.classList.remove('show');
-          spawning = false;
-        }
-      }, 15000);
+    function showPopup() {
+      randomPosition();
+      popup.style.display = 'flex';
     }
 
     popup.onclick = () => {
-      if (!popup.classList.contains('show')) return;
-      window.Twitch.ext.send('broadcast', 'application/json', { action: 'claimed' });
-      popup.classList.remove('show');
-      spawning = false;
-      alert('GAGNÉ !');
+      popup.style.display = 'none';
+      setTimeout(showPopup, 10000); // Réapparition après 10 s
     };
 
-    window.Twitch.ext.listen('broadcast', (t, type, msg) => {
-      if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
-        popup.classList.remove('show');
-        spawning = false;
-      }
-    });
+    // Démarrage automatique
+    showPopup();
   </script>
 </body>
 </html>
