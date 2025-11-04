@@ -2,72 +2,71 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Booster Full Screen Loop</title>
   <style>
-    /* FULL SCREEN OVERLAY */
+    /* 100% TRANSPARENT + FULL SCREEN */
     html, body {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
-      background: transparent;
+      background: transparent !important;
       overflow: hidden;
-      font-family: Arial;
     }
 
-    /* BOOSTER */
+    /* POP-UP BOOSTER */
     #booster {
       position: absolute;
       width: 110px; height: 110px;
       background: radial-gradient(circle, #00ffaa, #00cc88);
-      border-radius: 20px;
+      border-radius: 50%;
       box-shadow: 0 0 30px #00ffaa;
       cursor: pointer;
       display: flex; flex-direction: column;
       justify-content: center; align-items: center;
       color: white; font-weight: bold;
+      font-size: 14px;
       opacity: 0; transition: opacity 0.5s;
       animation: pulse 1.5s infinite;
       z-index: 9999;
-      user-select: none;
+      pointer-events: auto;
     }
     #booster.show { opacity: 1; }
     #booster:hover { transform: scale(1.1); }
     @keyframes pulse {
-      0%,100%{ box-shadow: 0 0 30px #00ffaa; }
-      50%{ box-shadow: 0 0 50px #00ffaa; }
+      0%,100% { box-shadow: 0 0 30px #00ffaa; }
+      50% { box-shadow: 0 0 50px #00ffaa; }
     }
-    #booster img { width: 60px; }
+    #booster img { width: 50px; margin-bottom: 5px; }
   </style>
 </head>
 <body>
 
   <div id="booster">
-    <img src="https://i.imgur.com/placeholder.png" alt="Logo">
-    <div>CLIQUE !</div>
+    <img src="https://i.imgur.com/placeholder.png" alt="Boost">
+    <div>CLIQUE</div>
   </div>
 
-  <audio id="sound" src="https://freesound.org/data/previews/276/276094_5094886-lq.mp3"></audio>
+  <audio id="sound" src="https://freesound.org/data/previews/276/276094_5094886-lq.mp3" preload="auto"></audio>
 
   <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
   <script>
     const booster = document.getElementById('booster');
     const sound = document.getElementById('sound');
 
-    window.Twitch.ext.onAuthorized(() => {});
+    // Auto-activation
+    window.Twitch.ext.onAuthorized(() => {
+      startSpawning();
+    });
 
     function spawn() {
-      // Position aléatoire dans TOUT l'écran
-      const maxX = window.innerWidth - 120;
-      const maxY = window.innerHeight - 120;
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
-
+      // Position aléatoire sur TOUT l'écran
+      const x = Math.random() * (window.innerWidth - 130);
+      const y = Math.random() * (window.innerHeight - 130);
       booster.style.left = x + 'px';
       booster.style.top = y + 'px';
       booster.classList.add('show');
       sound.currentTime = 0;
       sound.play().catch(() => {});
 
-      // Auto-cache après 15s si pas cliqué
+      // Auto-disparition après 15s
       setTimeout(() => {
         if (booster.classList.contains('show')) {
           booster.classList.remove('show');
@@ -75,26 +74,28 @@
       }, 15000);
     }
 
-    // Clic → cache + broadcast
+    function hide() {
+      booster.classList.remove('show');
+    }
+
+    // Clic → cache + sync
     booster.onclick = () => {
       if (!booster.classList.contains('show')) return;
-      window.Twitch.ext.send('broadcast', 'application/json', JSON.stringify({ action: 'claimed' }));
-      booster.classList.remove('show');
-      alert('TU AS GAGNÉ !');
+      window.Twitch.ext.send('broadcast', 'application/json', { action: 'claimed' });
+      hide();
+      alert('GAGNÉ !');
     };
 
-    // Sync pour tous les viewers
-    window.Twitch.ext.listen('broadcast', (target, type, msg) => {
+    window.Twitch.ext.listen('broadcast', (t, type, msg) => {
       if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
-        booster.classList.remove('show');
+        hide();
       }
     });
 
-    // REAPPAÎT TOUTES LES 10 SECONDES (TEST)
-    setInterval(spawn, 10000);
-
-    // Premier spawn immédiat
-    spawn();
+    function startSpawning() {
+      spawn();
+      setInterval(spawn, 10000); // TOUTES LES 10s
+    }
   </script>
 </body>
 </html>
