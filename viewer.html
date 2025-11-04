@@ -3,102 +3,94 @@
 <head>
   <meta charset="utf-8">
   <style>
-    /* FORCE TRANSPARENT + FULL SCREEN */
-    html, body, iframe {
+    /* FULL SCREEN + 100% TRANSPARENT */
+    html, body {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
-      border: none;
-      background: transparent !important;
+      background: transparent;
       overflow: hidden;
-    }
-
-    /* FOND INVISIBLE (clics passent à travers) */
-    #overlay-container {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none; /* Clics passent à travers le fond */
       z-index: 9999;
     }
 
-    /* POP-UP CLIQUABLE */
-    #booster {
+    /* POPUP */
+    #popup {
       position: absolute;
-      width: 110px; height: 110px;
-      background: radial-gradient(circle, #00ffaa, #00cc88);
-      border-radius: 50%;
-      box-shadow: 0 0 30px #00ffaa;
+      width: 100px; height: 100px;
+      background: #00ff88;
+      border: 3px solid #00cc66;
+      border-radius: 15px;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      color: white; font-weight: bold;
-      font-size: 14px;
-      opacity: 0; transition: opacity 0.5s;
-      animation: pulse 1.5s infinite;
-      pointer-events: auto; /* Cliquable */
-      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.4s;
+      box-shadow: 0 0 20px rgba(0,255,136,0.8);
+      user-select: none;
+      pointer-events: auto;
     }
-    #booster.show { opacity: 1; }
-    #booster:hover { transform: scale(1.1); }
-    @keyframes pulse {
-      0%,100% { box-shadow: 0 0 30px #00ffaa; }
-      50% { box-shadow: 0 0 50px #00ffaa; }
-    }
-    #booster img { width: 50px; margin-bottom: 5px; }
+    #popup.show { opacity: 1; }
+    #popup:hover { background: #00cc66; transform: scale(1.05); }
   </style>
 </head>
 <body>
 
-  <div id="overlay-container">
-    <div id="booster">
-      <img src="https://i.imgur.com/placeholder.png" alt="Boost">
-      <div>CLIQUE</div>
-    </div>
-  </div>
-
-  <audio id="sound" src="https://freesound.org/data/previews/276/276094_5094886-lq.mp3" preload="auto"></audio>
+  <div id="popup">CLICK</div>
 
   <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
   <script>
-    const booster = document.getElementById('booster');
-    const sound = document.getElementById('sound');
+    const popup = document.getElementById('popup');
+    let spawning = false;
 
+    // Démarre dès que Twitch charge l'extension
     window.Twitch.ext.onAuthorized(() => {
-      startSpawning();
+      start();
     });
 
     function spawn() {
-      const x = Math.random() * (window.innerWidth - 130);
-      const y = Math.random() * (window.innerHeight - 130);
-      booster.style.left = x + 'px';
-      booster.style.top = y + 'px';
-      booster.classList.add('show');
-      sound.currentTime = 0;
-      sound.play().catch(() => {});
+      if (spawning) return;
+      spawning = true;
 
-      setTimeout(() => {
-        if (booster.classList.contains('show')) {
-          booster.classList.remove('show');
-        }
-      }, 15000);
+      // Position aléatoire
+      const x = Math.random() * (window.innerWidth - 120);
+      const y = Math.random() * (window.innerHeight - 120);
+      popup.style.left = x + 'px';
+      popup.style.top = y + 'px';
+      popup.classList.add('show');
+
+      // Auto-cache après 15s
+      setTimeout(hide, 15000);
     }
 
-    booster.onclick = () => {
-      if (!booster.classList.contains('show')) return;
+    function hide() {
+      popup.classList.remove('show');
+      setTimeout(() => { spawning = false; }, 500);
+    }
+
+    // Clic = gagne
+    popup.onclick = () => {
+      if (!popup.classList.contains('show')) return;
       window.Twitch.ext.send('broadcast', 'application/json', { action: 'claimed' });
-      booster.classList.remove('show');
-      alert('GAGNÉ !');
+      hide();
+      alert('TU AS GAGNÉ !');
     };
 
+    // Sync pour tous
     window.Twitch.ext.listen('broadcast', (t, type, msg) => {
       if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
-        booster.classList.remove('show');
+        hide();
       }
     });
 
-    function startSpawning() {
+    // === SPAWN TOUTES LES 10s ===
+    function start() {
       spawn();
-      setInterval(spawn, 10000); // 10s
+      setInterval(spawn, 10000);
     }
   </script>
 </body>
