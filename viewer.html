@@ -68,7 +68,7 @@
       if (JSON.parse(msg).action === 'claimed') hide();
     });
 
-    // Timer 30-60 min (10s pour test)
+    // Premier spawn dans 10s, puis toutes les 30-60 min
     setTimeout(() => {
       spawn();
       setInterval(spawn, Math.random() * (3600000 - 1800000) + 1800000);
