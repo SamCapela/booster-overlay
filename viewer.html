@@ -19,6 +19,12 @@ html, body {
   height: 100px;
   background-color: red;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  user-select: none;
 }
 </style>
 </head>
@@ -38,11 +44,10 @@ function spawnPopup() {
 
   popup.addEventListener('click', () => {
     popup.remove();
-    setTimeout(spawnPopup, 10000); // 10s pour le prochain popup
+    setTimeout(spawnPopup, 10000);
   });
 }
 
-// Lancer au chargement
 spawnPopup();
 </script>
 </body>
