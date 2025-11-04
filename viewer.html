@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Booster Overlay</title>
+<title>Test Overlay</title>
 <style>
 html, body {
   margin: 0;
@@ -10,45 +10,28 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: transparent;
+  background: transparent; /* Fond transparent pour overlay Twitch */
   position: relative;
 }
-#popup {
+#hello {
   position: absolute;
-  width: 100px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
   height: 100px;
   background-color: red;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
   color: white;
-  user-select: none;
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 </style>
 </head>
 <body>
-<script>
-let popup;
-
-function spawnPopup() {
-  if (popup) popup.remove();
-
-  popup = document.createElement('div');
-  popup.id = 'popup';
-  popup.textContent = 'CLIC';
-  popup.style.left = Math.random() * (window.innerWidth - 100) + 'px';
-  popup.style.top = Math.random() * (window.innerHeight - 100) + 'px';
-  document.body.appendChild(popup);
-
-  popup.addEventListener('click', () => {
-    popup.remove();
-    setTimeout(spawnPopup, 10000);
-  });
-}
-
-spawnPopup();
-</script>
+<div id="hello">HELLO COUCOU</div>
 </body>
 </html>
