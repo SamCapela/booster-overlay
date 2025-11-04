@@ -3,15 +3,25 @@
 <head>
   <meta charset="utf-8">
   <style>
-    /* 100% TRANSPARENT + FULL SCREEN */
-    html, body {
+    /* FORCE TRANSPARENT + FULL SCREEN */
+    html, body, iframe {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
+      border: none;
       background: transparent !important;
       overflow: hidden;
     }
 
-    /* POP-UP BOOSTER */
+    /* FOND INVISIBLE (clics passent à travers) */
+    #overlay-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; /* Clics passent à travers le fond */
+      z-index: 9999;
+    }
+
+    /* POP-UP CLIQUABLE */
     #booster {
       position: absolute;
       width: 110px; height: 110px;
@@ -25,8 +35,8 @@
       font-size: 14px;
       opacity: 0; transition: opacity 0.5s;
       animation: pulse 1.5s infinite;
+      pointer-events: auto; /* Cliquable */
       z-index: 9999;
-      pointer-events: auto;
     }
     #booster.show { opacity: 1; }
     #booster:hover { transform: scale(1.1); }
@@ -39,9 +49,11 @@
 </head>
 <body>
 
-  <div id="booster">
-    <img src="https://i.imgur.com/placeholder.png" alt="Boost">
-    <div>CLIQUE</div>
+  <div id="overlay-container">
+    <div id="booster">
+      <img src="https://i.imgur.com/placeholder.png" alt="Boost">
+      <div>CLIQUE</div>
+    </div>
   </div>
 
   <audio id="sound" src="https://freesound.org/data/previews/276/276094_5094886-lq.mp3" preload="auto"></audio>
@@ -51,13 +63,11 @@
     const booster = document.getElementById('booster');
     const sound = document.getElementById('sound');
 
-    // Auto-activation
     window.Twitch.ext.onAuthorized(() => {
       startSpawning();
     });
 
     function spawn() {
-      // Position aléatoire sur TOUT l'écran
       const x = Math.random() * (window.innerWidth - 130);
       const y = Math.random() * (window.innerHeight - 130);
       booster.style.left = x + 'px';
@@ -66,7 +76,6 @@
       sound.currentTime = 0;
       sound.play().catch(() => {});
 
-      // Auto-disparition après 15s
       setTimeout(() => {
         if (booster.classList.contains('show')) {
           booster.classList.remove('show');
@@ -74,27 +83,22 @@
       }, 15000);
     }
 
-    function hide() {
-      booster.classList.remove('show');
-    }
-
-    // Clic → cache + sync
     booster.onclick = () => {
       if (!booster.classList.contains('show')) return;
       window.Twitch.ext.send('broadcast', 'application/json', { action: 'claimed' });
-      hide();
+      booster.classList.remove('show');
       alert('GAGNÉ !');
     };
 
     window.Twitch.ext.listen('broadcast', (t, type, msg) => {
       if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
-        hide();
+        booster.classList.remove('show');
       }
     });
 
     function startSpawning() {
       spawn();
-      setInterval(spawn, 10000); // TOUTES LES 10s
+      setInterval(spawn, 10000); // 10s
     }
   </script>
 </body>
