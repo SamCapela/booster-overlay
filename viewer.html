@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Booster Clicker</title>
+  <style>
+    body { margin:0; background:transparent; overflow:hidden; }
+    #booster {
+      position:absolute; width:110px; height:110px;
+      background:radial-gradient(#00ffaa,#00cc88); border-radius:20px;
+      box-shadow:0 0 30px #00ffaa; cursor:pointer;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      color:white; font-weight:bold; opacity:0; transition:opacity .5s;
+      animation:pulse 1.5s infinite; z-index:9999;
+    }
+    #booster.show { opacity:1; }
+    #booster:hover { transform:scale(1.1); }
+    @keyframes pulse {
+      0%,100%{box-shadow:0 0 30px #00ffaa} 50%{box-shadow:0 0 50px #00ffaa}
+    }
+  </style>
+</head>
+<body>
+
+  <div id="booster">
+    <img src="https://i.imgur.com/ton-logo.png" style="width:60px">
+    <div>CLIQUE !</div>
+  </div>
+
+  <audio id="sound" src="https://freesound.org/data/previews/276/276094_5094886-lq.mp3"></audio>
+
+  <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+  <script>
+    const booster = document.getElementById('booster');
+    const sound = document.getElementById('sound');
+    let isActive = false;
+
+    window.Twitch.ext.onAuthorized(() => {});
+
+    function spawn() {
+      if (isActive) return;
+      const x = Math.random() * (window.innerWidth - 150);
+      const y = Math.random() * (window.innerHeight - 200);
+      booster.style.left = x + 'px';
+      booster.style.top = y + 'px';
+      booster.classList.add('show');
+      sound.play();
+      isActive = true;
+
+      setTimeout(() => {
+        if (booster.classList.contains('show')) hide();
+      }, 15000);
+    }
+
+    function hide() {
+      booster.classList.remove('show');
+      isActive = false;
+    }
+
+    booster.onclick = () => {
+      if (!isActive) return;
+      window.Twitch.ext.send('broadcast', 'application/json', JSON.stringify({action: 'claimed'}));
+      hide();
+      alert('TU AS GAGNÉ LE BOOSTER !');
+    };
+
+    window.Twitch.ext.listen('broadcast', (target, type, msg) => {
+      if (JSON.parse(msg).action === 'claimed') hide();
+    });
+
+    // Timer 30-60 min (10s pour test)
+    setTimeout(() => {
+      spawn();
+      setInterval(spawn, Math.random() * (3600000 - 1800000) + 1800000);
+    }, 10000);
+  </script>
+</body>
+</html>
