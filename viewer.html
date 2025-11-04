@@ -2,19 +2,28 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <title>Booster Clicker Transparent</title>
   <style>
-    /* FULL SCREEN + 100% TRANSPARENT */
+    /* FORCE TRANSPARENT + FULL SCREEN */
     html, body {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
-      background: transparent;
+      background: transparent !important;
       overflow: hidden;
       position: fixed;
       top: 0; left: 0;
-      z-index: 9999;
     }
 
-    /* POPUP */
+    /* CONTENEUR INVISIBLE */
+    #container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; /* Clics passent à travers le fond */
+      background: transparent !important;
+    }
+
+    /* POP-UP CLIQUABLE */
     #popup {
       position: absolute;
       width: 100px; height: 100px;
@@ -31,8 +40,9 @@
       opacity: 0;
       transition: opacity 0.4s;
       box-shadow: 0 0 20px rgba(0,255,136,0.8);
+      pointer-events: auto; /* Cliquable */
+      z-index: 9999;
       user-select: none;
-      pointer-events: auto;
     }
     #popup.show { opacity: 1; }
     #popup:hover { background: #00cc66; transform: scale(1.05); }
@@ -40,17 +50,26 @@
 </head>
 <body>
 
-  <div id="popup">CLICK</div>
+  <div id="container">
+    <div id="popup">CLICK</div>
+  </div>
 
   <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
   <script>
     const popup = document.getElementById('popup');
     let spawning = false;
 
-    // Démarre dès que Twitch charge l'extension
     window.Twitch.ext.onAuthorized(() => {
-      start();
+      // Force démarrage après chargement (hack pour autoplay)
+      setTimeout(() => {
+        start();
+      }, 1000);
     });
+
+    function start() {
+      spawn();
+      setInterval(spawn, 10000); // 10s
+    }
 
     function spawn() {
       if (spawning) return;
@@ -63,35 +82,31 @@
       popup.style.top = y + 'px';
       popup.classList.add('show');
 
-      // Auto-cache après 15s
-      setTimeout(hide, 15000);
+      // Auto-cache 15s
+      setTimeout(() => {
+        if (popup.classList.contains('show')) {
+          popup.classList.remove('show');
+          spawning = false;
+        }
+      }, 15000);
     }
 
-    function hide() {
-      popup.classList.remove('show');
-      setTimeout(() => { spawning = false; }, 500);
-    }
-
-    // Clic = gagne
+    // Clic
     popup.onclick = () => {
       if (!popup.classList.contains('show')) return;
       window.Twitch.ext.send('broadcast', 'application/json', { action: 'claimed' });
-      hide();
-      alert('TU AS GAGNÉ !');
+      popup.classList.remove('show');
+      spawning = false;
+      alert('GAGNÉ !');
     };
 
-    // Sync pour tous
+    // Sync
     window.Twitch.ext.listen('broadcast', (t, type, msg) => {
       if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
-        hide();
+        popup.classList.remove('show');
+        spawning = false;
       }
     });
-
-    // === SPAWN TOUTES LES 10s ===
-    function start() {
-      spawn();
-      setInterval(spawn, 10000);
-    }
   </script>
 </body>
 </html>
