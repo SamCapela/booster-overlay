@@ -2,24 +2,40 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Booster Auto-Spawn</title>
+  <title>Booster Full Screen Loop</title>
   <style>
-    body { margin: 0; background: transparent; overflow: hidden; font-family: Arial; }
+    /* FULL SCREEN OVERLAY */
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: Arial;
+    }
 
+    /* BOOSTER */
     #booster {
-      position: absolute; width: 110px; height: 110px;
-      background: radial-gradient(circle, #00ffaa, #00cc88); border-radius: 20px;
-      box-shadow: 0 0 30px #00ffaa; cursor: pointer;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      color: white; font-weight: bold; opacity: 0; transition: opacity 0.5s;
-      animation: pulse 1.5s infinite; z-index: 9999;
+      position: absolute;
+      width: 110px; height: 110px;
+      background: radial-gradient(circle, #00ffaa, #00cc88);
+      border-radius: 20px;
+      box-shadow: 0 0 30px #00ffaa;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      color: white; font-weight: bold;
+      opacity: 0; transition: opacity 0.5s;
+      animation: pulse 1.5s infinite;
+      z-index: 9999;
+      user-select: none;
     }
     #booster.show { opacity: 1; }
     #booster:hover { transform: scale(1.1); }
     @keyframes pulse {
-      0%,100%{box-shadow:0 0 30px #00ffaa} 50%{box-shadow:0 0 50px #00ffaa}
+      0%,100%{ box-shadow: 0 0 30px #00ffaa; }
+      50%{ box-shadow: 0 0 50px #00ffaa; }
     }
-    #booster img { width:60px; }
+    #booster img { width: 60px; }
   </style>
 </head>
 <body>
@@ -35,48 +51,50 @@
   <script>
     const booster = document.getElementById('booster');
     const sound = document.getElementById('sound');
-    let isActive = false;
 
     window.Twitch.ext.onAuthorized(() => {});
 
     function spawn() {
-      if (isActive) return;
-      const x = Math.random() * (window.innerWidth - 150);
-      const y = Math.random() * (window.innerHeight - 200);
+      // Position aléatoire dans TOUT l'écran
+      const maxX = window.innerWidth - 120;
+      const maxY = window.innerHeight - 120;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
       booster.style.left = x + 'px';
       booster.style.top = y + 'px';
       booster.classList.add('show');
       sound.currentTime = 0;
       sound.play().catch(() => {});
-      isActive = true;
 
+      // Auto-cache après 15s si pas cliqué
       setTimeout(() => {
-        if (booster.classList.contains('show')) hide();
+        if (booster.classList.contains('show')) {
+          booster.classList.remove('show');
+        }
       }, 15000);
     }
 
-    function hide() {
-      booster.classList.remove('show');
-      isActive = false;
-    }
-
+    // Clic → cache + broadcast
     booster.onclick = () => {
-      if (!isActive) return;
+      if (!booster.classList.contains('show')) return;
       window.Twitch.ext.send('broadcast', 'application/json', JSON.stringify({ action: 'claimed' }));
-      hide();
-      alert('TU AS GAGNÉ LE BOOSTER !');
+      booster.classList.remove('show');
+      alert('TU AS GAGNÉ !');
     };
 
+    // Sync pour tous les viewers
     window.Twitch.ext.listen('broadcast', (target, type, msg) => {
       if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
-        hide();
+        booster.classList.remove('show');
       }
     });
 
-    // REAPPAÎT TOUTES LES 10s (TEST)
-    setInterval(() => {
-      spawn();
-    }, 10000);
+    // REAPPAÎT TOUTES LES 10 SECONDES (TEST)
+    setInterval(spawn, 10000);
+
+    // Premier spawn immédiat
+    spawn();
   </script>
 </body>
 </html>
