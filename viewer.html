@@ -1,73 +1,49 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <title>Twitch Popup</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      position: relative;
-      background: transparent; /* important pour overlay Twitch */
-    }
-
-    #popup {
-      position: absolute;
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 0, 0, 0.8);
-      color: white;
-      font-family: sans-serif;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      cursor: pointer;
-      user-select: none;
-      display: none;
-      transition: transform 0.2s ease;
-    }
-
-    #popup:hover {
-      transform: scale(1.1);
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Booster Overlay</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  position: relative;
+}
+#popup {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: red;
+  cursor: pointer;
+}
+</style>
 </head>
 <body>
-  <script>
-    console.log("✅ viewer.html chargé !");
-    alert("viewer.html chargé !");
-  </script>
-  
-  <div id="popup">clic</div>
+<script>
+let popup;
 
-  <script>
-    const popup = document.getElementById('popup');
+function spawnPopup() {
+  if (popup) popup.remove();
 
-    function randomPosition() {
-      const x = Math.random() * 90 + 5; // 5–95 %
-      const y = Math.random() * 90 + 5;
-      popup.style.left = x + '%';
-      popup.style.top = y + '%';
-    }
+  popup = document.createElement('div');
+  popup.id = 'popup';
+  popup.textContent = 'CLIC';
+  popup.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+  popup.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+  document.body.appendChild(popup);
 
-    function showPopup() {
-      randomPosition();
-      popup.style.display = 'flex';
-    }
+  popup.addEventListener('click', () => {
+    popup.remove();
+    setTimeout(spawnPopup, 10000); // 10s pour le prochain popup
+  });
+}
 
-    popup.onclick = () => {
-      popup.style.display = 'none';
-      setTimeout(showPopup, 10000); // Réapparition après 10 s
-    };
-
-    // Démarrage automatique
-    showPopup();
-  </script>
+// Lancer au chargement
+spawnPopup();
+</script>
 </body>
 </html>
