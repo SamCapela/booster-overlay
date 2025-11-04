@@ -2,28 +2,14 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Booster Clicker Transparent</title>
   <style>
-    /* FORCE TRANSPARENT + FULL SCREEN */
     html, body {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
       background: transparent !important;
       overflow: hidden;
-      position: fixed;
-      top: 0; left: 0;
     }
 
-    /* CONTENEUR INVISIBLE */
-    #container {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none; /* Clics passent à travers le fond */
-      background: transparent !important;
-    }
-
-    /* POP-UP CLIQUABLE */
     #popup {
       position: absolute;
       width: 100px; height: 100px;
@@ -40,9 +26,8 @@
       opacity: 0;
       transition: opacity 0.4s;
       box-shadow: 0 0 20px rgba(0,255,136,0.8);
-      pointer-events: auto; /* Cliquable */
+      pointer-events: auto;
       z-index: 9999;
-      user-select: none;
     }
     #popup.show { opacity: 1; }
     #popup:hover { background: #00cc66; transform: scale(1.05); }
@@ -50,9 +35,7 @@
 </head>
 <body>
 
-  <div id="container">
-    <div id="popup">CLICK</div>
-  </div>
+  <div id="popup">CLICK</div>
 
   <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
   <script>
@@ -60,29 +43,24 @@
     let spawning = false;
 
     window.Twitch.ext.onAuthorized(() => {
-      // Force démarrage après chargement (hack pour autoplay)
-      setTimeout(() => {
-        start();
-      }, 1000);
+      start();
     });
 
     function start() {
       spawn();
-      setInterval(spawn, 10000); // 10s
+      setInterval(spawn, 10000);
     }
 
     function spawn() {
       if (spawning) return;
       spawning = true;
 
-      // Position aléatoire
       const x = Math.random() * (window.innerWidth - 120);
       const y = Math.random() * (window.innerHeight - 120);
       popup.style.left = x + 'px';
       popup.style.top = y + 'px';
       popup.classList.add('show');
 
-      // Auto-cache 15s
       setTimeout(() => {
         if (popup.classList.contains('show')) {
           popup.classList.remove('show');
@@ -91,7 +69,6 @@
       }, 15000);
     }
 
-    // Clic
     popup.onclick = () => {
       if (!popup.classList.contains('show')) return;
       window.Twitch.ext.send('broadcast', 'application/json', { action: 'claimed' });
@@ -100,7 +77,6 @@
       alert('GAGNÉ !');
     };
 
-    // Sync
     window.Twitch.ext.listen('broadcast', (t, type, msg) => {
       if (type === 'application/json' && JSON.parse(msg).action === 'claimed') {
         popup.classList.remove('show');
